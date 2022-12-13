@@ -8,10 +8,9 @@ class Payload
 {
     public function __construct(
         private string $id,
-        private ?int $expireAt = null,
-    ) {
-        $this->id = $id;
-        $this->expireAt = $expireAt;
+        private ?int $expireAt = null
+    )
+    {
     }
 
     public function getId(): string
@@ -21,6 +20,6 @@ class Payload
 
     public function getExpireAt(): ?int
     {
-        return $this->getExpireAt();
+        return $this->expireAt;
     }
 }

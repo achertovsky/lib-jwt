@@ -12,10 +12,11 @@ class PayloadNormalizer
     {
         $result = [
             'sub' => $payload->getId(),
-            // 'exp' => $payload->
+            'exp' => $payload->getExpireAt(),
         ];
 
-
-        return $result;
+        return array_filter(
+            $result
+        );
     }
 }
