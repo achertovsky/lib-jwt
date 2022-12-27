@@ -6,6 +6,7 @@ namespace achertovsky\jwt\tests\Normalizer;
 
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
 
 class PayloadNormalizerTest extends TestCase
@@ -18,8 +19,8 @@ class PayloadNormalizerTest extends TestCase
 
         $this->assertEquals(
             [
-                'sub' => '1',
-                'exp' => $expTime
+                JwtClaims::SUBJECT => '1',
+                JwtClaims::EXPIRATION_TIME => $expTime
             ],
             $normalizer->normalize(
                 new Payload(
@@ -36,7 +37,7 @@ class PayloadNormalizerTest extends TestCase
 
         $this->assertEquals(
             [
-                'sub' => '1',
+                JwtClaims::SUBJECT => '1',
             ],
             $normalizer->normalize(
                 new Payload(
