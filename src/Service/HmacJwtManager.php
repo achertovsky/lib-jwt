@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Service;
 
-use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Exception\TokenExpiredException;
+use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
+use achertovsky\jwt\Exception\TokenExpiredException;
 
 class HmacJwtManager implements JwtManagerInterface
 {
@@ -19,7 +19,6 @@ class HmacJwtManager implements JwtManagerInterface
         private string $secret
     ) {
     }
-
 
     public function create(Payload $payload): string
     {

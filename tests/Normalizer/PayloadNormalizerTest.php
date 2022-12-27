@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\tests\Normalizer;
 
-use achertovsky\jwt\Const\JwtClaims;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
 
 class PayloadNormalizerTest extends TestCase

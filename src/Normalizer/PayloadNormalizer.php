@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Normalizer;
 
-use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Const\JwtClaims;
 
 class PayloadNormalizer
 {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\tests\Service;
 
-use achertovsky\jwt\Const\JwtClaims;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Exception\JwtException;
 use achertovsky\jwt\Service\HmacJwtManager;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
