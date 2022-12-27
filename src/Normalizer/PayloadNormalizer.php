@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Normalizer;
 
+use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Entity\Payload;
 
 class PayloadNormalizer
@@ -15,8 +16,8 @@ class PayloadNormalizer
     public function normalize(Payload $payload): array
     {
         $result = [
-            'sub' => $payload->getId(),
-            'exp' => (string) $payload->getExpireAt(),
+            JwtClaims::SUBJECT => $payload->getId(),
+            JwtClaims::EXPIRATION_TIME => (string) $payload->getExpireAt(),
         ];
 
         return array_filter(

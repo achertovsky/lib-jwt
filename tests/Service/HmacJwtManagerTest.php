@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\tests\Service;
 
+use achertovsky\jwt\Const\JwtClaims;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Exception\JwtException;
@@ -41,8 +42,8 @@ class HmacJwtManagerTest extends TestCase
     {
         $encodedJson = json_encode(
             [
-                'alg' => 'HS256',
-                'typ' => 'JWT'
+                JwtClaims::ALGORITHM => 'HS256',
+                JwtClaims::TYPE => 'JWT'
             ]
         );
 
@@ -50,10 +51,10 @@ class HmacJwtManagerTest extends TestCase
             (string) $encodedJson
         );
         $payloadData = [
-            'sub' => self::PAYLOAD_SUB,
+            JwtClaims::SUBJECT => self::PAYLOAD_SUB,
         ];
         if ($exp !== null) {
-            $payloadData['exp'] = $exp;
+            $payloadData[JwtClaims::EXPIRATION_TIME] = $exp;
         }
         $encodedJson = json_encode(
             $payloadData

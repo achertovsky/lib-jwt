@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Service;
 
+use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Exception\TokenExpiredException;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
@@ -24,8 +25,8 @@ class HmacJwtManager implements JwtManagerInterface
     {
         $header = $this->encode(
             [
-                'alg' => self::HEADER_ALGO,
-                'typ' => 'JWT',
+                JwtClaims::ALGORITHM => self::HEADER_ALGO,
+                JwtClaims::TYPE => 'JWT',
             ]
         );
 
@@ -97,7 +98,10 @@ class HmacJwtManager implements JwtManagerInterface
             $payload
         );
 
-        if (isset($decodedPayload['exp']) && (int) $decodedPayload['exp'] < time()) {
+        if (
+            isset($decodedPayload[JwtClaims::EXPIRATION_TIME])
+            && (int) $decodedPayload[JwtClaims::EXPIRATION_TIME] < time()
+        ) {
             throw new TokenExpiredException();
         }
     }
