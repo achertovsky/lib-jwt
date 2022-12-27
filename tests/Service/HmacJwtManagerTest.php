@@ -181,4 +181,17 @@ class HmacJwtManagerTest extends TestCase
                 )
         );
     }
+
+    public function testCreateAndValidate(): void
+    {
+        $jwt = $this->manager->create(
+            new Payload(
+                'subject'
+            )
+        );
+
+        $this->assertTrue(
+            $this->manager->validate($jwt)
+        );
+    }
 }
