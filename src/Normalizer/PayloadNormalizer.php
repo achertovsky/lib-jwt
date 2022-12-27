@@ -8,11 +8,15 @@ use achertovsky\jwt\Entity\Payload;
 
 class PayloadNormalizer
 {
+    /**
+     * @param Payload $payload
+     * @return array<string,string>
+     */
     public function normalize(Payload $payload): array
     {
         $result = [
             'sub' => $payload->getId(),
-            'exp' => $payload->getExpireAt(),
+            'exp' => (string) $payload->getExpireAt(),
         ];
 
         return array_filter(

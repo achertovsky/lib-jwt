@@ -7,9 +7,8 @@ namespace achertovsky\jwt\tests\Service;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Exception\JwtException;
-use achertovsky\jwt\Exception\TokenExpiredException;
-use achertovsky\jwt\Normalizer\PayloadNormalizer;
 use achertovsky\jwt\Service\HmacJwtManager;
+use achertovsky\jwt\Normalizer\PayloadNormalizer;
 
 class HmacJwtManagerTest extends TestCase
 {
@@ -38,15 +37,17 @@ class HmacJwtManagerTest extends TestCase
         );
     }
 
-    private function generateJwt(?int $exp = null)
+    private function generateJwt(?int $exp = null): string
     {
+        $encodedJson = json_encode(
+            [
+                'alg' => 'HS256',
+                'typ' => 'JWT'
+            ]
+        );
+
         $header = base64_encode(
-            json_encode(
-                [
-                    'alg' => 'HS256',
-                    'typ' => 'JWT'
-                ]
-            )
+            (string) $encodedJson
         );
         $payloadData = [
             'sub' => self::PAYLOAD_SUB,
@@ -54,10 +55,11 @@ class HmacJwtManagerTest extends TestCase
         if ($exp !== null) {
             $payloadData['exp'] = $exp;
         }
+        $encodedJson = json_encode(
+            $payloadData
+        );
         $payload = base64_encode(
-            json_encode(
-                $payloadData
-            )
+            (string) $encodedJson
         );
         $signature = hash_hmac(
             'sha256',
@@ -90,7 +92,7 @@ class HmacJwtManagerTest extends TestCase
     public function testValidateInvalidSignatureKey(): void
     {
         $manager = new HmacJwtManager(
-            new PayloadNormalizer,
+            new PayloadNormalizer(),
             'wrongkey'
         );
         $this->assertFalse(
@@ -118,10 +120,11 @@ class HmacJwtManagerTest extends TestCase
 
         $payload['newkey'] = 'whynot';
 
+        $encodedJson = json_encode(
+            $payload
+        );
         $payload = base64_encode(
-            json_encode(
-                $payload
-            )
+            (string) $encodedJson
         );
 
         $this->assertFalse(
@@ -157,9 +160,6 @@ class HmacJwtManagerTest extends TestCase
                 ->validate(
                     sprintf(
                         '.%s.',
-                        base64_encode(
-                            'notjson'
-                        ),
                         base64_encode(
                             'notjson'
                         )

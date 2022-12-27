@@ -9,8 +9,7 @@ class Payload
     public function __construct(
         private string $id,
         private ?int $expireAt = null
-    )
-    {
+    ) {
     }
 
     public function getId(): string

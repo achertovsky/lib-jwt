@@ -46,12 +46,18 @@ class HmacJwtManager implements JwtManagerInterface
         );
     }
 
+    /**
+     * @param array<string,string> $array
+     * @return string
+     */
     private function encode(array $array): string
     {
+        $encodedJson = json_encode(
+            $array
+        );
+
         return base64_encode(
-            json_encode(
-                $array
-            )
+            (string) $encodedJson
         );
     }
 
@@ -91,19 +97,35 @@ class HmacJwtManager implements JwtManagerInterface
             $payload
         );
 
-        if (isset($decodedPayload['exp']) && $decodedPayload['exp'] < time()) {
+        if (isset($decodedPayload['exp']) && (int) $decodedPayload['exp'] < time()) {
             throw new TokenExpiredException();
         }
     }
 
-    private function decode(string $part): array
+    /**
+     * @param string $encodedData
+     * @return array<string,array<string,string>>
+     */
+    private function decode(string $encodedData): array
     {
-        return json_decode(
-            base64_decode(
-                $part,
-                true
-            ),
+        $base64Decoded = base64_decode(
+            $encodedData,
             true
         );
+
+        if ($base64Decoded === false) {
+            return [];
+        }
+
+        $jsonDecoded = json_decode(
+            $base64Decoded,
+            true
+        );
+
+        if ($jsonDecoded === null) {
+            return [];
+        }
+
+        return $jsonDecoded;
     }
 }
