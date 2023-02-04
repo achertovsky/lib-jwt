@@ -7,6 +7,7 @@ namespace achertovsky\jwt\tests\Service;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Const\JwtClaims;
+use achertovsky\jwt\Normalizer\TokenNormalizer;
 use achertovsky\jwt\Exception\JwtException;
 use achertovsky\jwt\Service\HmacJwtManager;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
@@ -21,6 +22,7 @@ class HmacJwtManagerTest extends TestCase
     {
         $this->manager = new HmacJwtManager(
             new PayloadNormalizer(),
+            new TokenNormalizer(),
             self::KEY
         );
     }
@@ -94,6 +96,7 @@ class HmacJwtManagerTest extends TestCase
     {
         $manager = new HmacJwtManager(
             new PayloadNormalizer(),
+            new TokenNormalizer(),
             'wrongkey'
         );
         $this->assertFalse(
@@ -192,6 +195,20 @@ class HmacJwtManagerTest extends TestCase
 
         $this->assertTrue(
             $this->manager->validate($jwt)
+        );
+    }
+
+    public function testDecode(): void
+    {
+        $payload = new Payload(
+            'id',
+            strtotime('+30 min')
+        );
+        $jwt = $this->manager->create($payload);
+
+        $this->assertEquals(
+            $payload,
+            $this->manager->decode($jwt)
         );
     }
 }

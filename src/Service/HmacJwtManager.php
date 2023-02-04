@@ -7,6 +7,7 @@ namespace achertovsky\jwt\Service;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
+use achertovsky\jwt\Normalizer\TokenNormalizer;
 use achertovsky\jwt\Exception\TokenExpiredException;
 
 class HmacJwtManager implements JwtManagerInterface
@@ -16,6 +17,7 @@ class HmacJwtManager implements JwtManagerInterface
 
     public function __construct(
         private PayloadNormalizer $payloadNormalizer,
+        private TokenNormalizer $tokenDenormalizer,
         private string $secret
     ) {
     }
@@ -35,6 +37,9 @@ class HmacJwtManager implements JwtManagerInterface
             )
         );
 
+        /**
+         * @todo use token denormalizer
+         */
         return sprintf(
             '%s.%s.%s',
             $header,
@@ -61,6 +66,9 @@ class HmacJwtManager implements JwtManagerInterface
         );
     }
 
+    /**
+     * @todo move method to separated service
+     */
     private function sign(string $header, string $payload): string
     {
         return hash_hmac(
@@ -76,24 +84,21 @@ class HmacJwtManager implements JwtManagerInterface
 
     public function validate(string $token): bool
     {
-        list($header, $payload, $signature) = explode(
-            '.',
-            $token
-        );
+        $token = $this->tokenDenormalizer->denormalize($token);
 
-        $this->assureNotExpired($payload);
+        $this->assureNotExpired($token->getPayload());
 
         return $this->sign(
-            $header,
-            $payload
+            $token->getHeader(),
+            $token->getPayload()
         )
-            === $signature
+            === $token->getSignature()
         ;
     }
 
     public function assureNotExpired(string $payload): void
     {
-        $decodedPayload = $this->decode(
+        $decodedPayload = $this->payloadToArray(
             $payload
         );
 
@@ -109,7 +114,7 @@ class HmacJwtManager implements JwtManagerInterface
      * @param string $encodedData
      * @return array<string,array<string,string>>
      */
-    private function decode(string $encodedData): array
+    private function payloadToArray(string $encodedData): array
     {
         $base64Decoded = base64_decode(
             $encodedData,
@@ -130,5 +135,14 @@ class HmacJwtManager implements JwtManagerInterface
         }
 
         return $jsonDecoded;
+    }
+
+    public function decode(string $token): Payload
+    {
+        $token = $this->tokenDenormalizer->denormalize($token);
+
+        $payload = $this->payloadToArray($token->getPayload());
+
+        return $this->payloadNormalizer->denormalize($payload);
     }
 }

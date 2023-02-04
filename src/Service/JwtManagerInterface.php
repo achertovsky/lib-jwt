@@ -10,4 +10,5 @@ interface JwtManagerInterface
 {
     public function create(Payload $payload): string;
     public function validate(string $token): bool;
+    public function decode(string $token): Payload;
 }

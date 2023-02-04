@@ -24,4 +24,24 @@ class PayloadNormalizer
             $result
         );
     }
+
+    /**
+     * @param array<string,string|int> $payload
+     * @return Payload
+     */
+    public function denormalize(array $payload): Payload
+    {
+        $subject = (string)$payload[JwtClaims::SUBJECT];
+
+        $expTime = filter_var(
+            $payload[JwtClaims::EXPIRATION_TIME] ?? null,
+            FILTER_VALIDATE_INT,
+            FILTER_NULL_ON_FAILURE
+        );
+
+        return new Payload(
+            $subject,
+            $expTime
+        );
+    }
 }
