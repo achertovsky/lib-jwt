@@ -2,25 +2,7 @@
 Lib called to reduce hassle in projects with jwt. Expected to be convenient solution for the purpose.
 
 ## usage
-```
-$jwtSecretKey = 'sosecretkeywow';
-
-$manager = new HmacJwtManager(
-    new PayloadNormalizer(),
-    $jwtSecretKey
-);
-
-$jwt = $manager->create(
-    new Payload(
-        'token subject here',
-        time() //optional param to define expiration time
-    )
-);
-
-$manager->validate(
-    $jwt
-);
-```
+To check usage cases, please, refer to `tests/Service/JwtManagerTest.php`. That class is expected to get configured and used in your application.
 
 # Development
 ## install env

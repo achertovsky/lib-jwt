@@ -11,39 +11,99 @@ use achertovsky\jwt\Normalizer\PayloadNormalizer;
 
 class PayloadNormalizerTest extends TestCase
 {
-    public function testNormalize(): void
+    private const ID = 'id';
+    private const TIME = 1675514814;
+
+    private PayloadNormalizer $normalizer;
+
+    protected function setUp(): void
     {
-        $normalizer = new PayloadNormalizer();
+        $this->normalizer = new PayloadNormalizer();
+    }
 
-        $expTime = time();
-
+    /**
+     * @param array<string,string|null|int> $normalizedData
+     * @param Payload $denormalizedData
+     *
+     * @dataProvider dataNormalize
+     */
+    public function testNormalize(
+        array $normalizedData,
+        Payload $denormalizedData
+    ): void {
         $this->assertEquals(
-            [
-                JwtClaims::SUBJECT => '1',
-                JwtClaims::EXPIRATION_TIME => $expTime
-            ],
-            $normalizer->normalize(
-                new Payload(
-                    '1',
-                    $expTime
-                )
-            )
+            $normalizedData,
+            $this->normalizer->normalize($denormalizedData)
         );
     }
 
-    public function testNormalizeRequiredOnly(): void
+    /**
+     * @return array<array<array<string,string|int>|Payload>>
+     */
+    public function dataNormalize(): array
     {
-        $normalizer = new PayloadNormalizer();
-
-        $this->assertEquals(
+        return [
             [
-                JwtClaims::SUBJECT => '1',
-            ],
-            $normalizer->normalize(
+                [
+                    JwtClaims::SUBJECT => self::ID,
+                    JwtClaims::EXPIRATION_TIME => self::TIME
+                ],
                 new Payload(
-                    '1',
+                    self::ID,
+                    self::TIME
                 )
-            )
+            ],
+            [
+                [
+                    JwtClaims::SUBJECT => self::ID
+                ],
+                new Payload(
+                    self::ID
+                )
+            ],
+        ];
+    }
+
+    /**
+     * @param Payload $denormalizedData
+     * @param array<string,string|null|int> $normalizedData
+     *
+     * @dataProvider dataDenormalize
+     */
+    public function testDenormalize(
+        Payload $denormalizedData,
+        array $normalizedData
+    ): void {
+        $this->assertEquals(
+            $denormalizedData,
+            $this->normalizer->denormalize($normalizedData)
         );
+    }
+
+    /**
+     * @return array<array<array<string,string|int>|Payload>>
+     */
+    public function dataDenormalize(): array
+    {
+        return [
+            [
+                new Payload(
+                    self::ID,
+                    self::TIME
+                ),
+                [
+                    JwtClaims::SUBJECT => self::ID,
+                    JwtClaims::EXPIRATION_TIME => self::TIME
+                ],
+            ],
+            [
+                new Payload(
+                    self::ID
+                ),
+                [
+                    JwtClaims::SUBJECT => self::ID
+                ],
+            ],
+        ];
     }
 }
