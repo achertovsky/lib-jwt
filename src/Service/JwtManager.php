@@ -8,18 +8,18 @@ use achertovsky\jwt\Entity\Token;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Exception\JwtException;
-use achertovsky\jwt\Normalizer\TokenNormalizer;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
 use achertovsky\jwt\Normalizer\JwtPartsNormalizer;
 use achertovsky\jwt\Exception\TokenExpiredException;
+use achertovsky\jwt\Normalizer\TokenNormalizerInterface;
 
-class HmacJwtManager implements JwtManagerInterface
+class JwtManager
 {
     private const HEADER_ALGO = 'HS256';
 
     public function __construct(
         private PayloadNormalizer $payloadNormalizer,
-        private TokenNormalizer $tokenNormalizer,
+        private TokenNormalizerInterface $tokenNormalizer,
         private JwtPartsNormalizer $jwtPartsNormalizer
     ) {
     }

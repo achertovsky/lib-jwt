@@ -7,7 +7,7 @@ namespace achertovsky\jwt\Normalizer;
 use achertovsky\jwt\Entity\Token;
 use achertovsky\jwt\Service\HmacSignatureCreator;
 
-class TokenNormalizer
+class HmacTokenNormalizer implements TokenNormalizerInterface
 {
     public function __construct(
         private HmacSignatureCreator $signatureCreator

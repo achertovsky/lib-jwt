@@ -6,12 +6,12 @@ namespace achertovsky\jwt\tests\Normalizer;
 
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Token;
-use achertovsky\jwt\Normalizer\TokenNormalizer;
+use achertovsky\jwt\Normalizer\HmacTokenNormalizer;
 use achertovsky\jwt\Service\HmacSignatureCreator;
 
-class TokenDenormalizerTest extends TestCase
+class HmacTokenNormalizerTest extends TestCase
 {
-    private TokenNormalizer $normalizer;
+    private HmacTokenNormalizer $normalizer;
 
     protected function setUp(): void
     {
@@ -22,7 +22,7 @@ class TokenDenormalizerTest extends TestCase
         ;
 
         /** @var HmacSignatureCreator $hmacSignatureCreatorMock */
-        $this->normalizer = new TokenNormalizer(
+        $this->normalizer = new HmacTokenNormalizer(
             $hmacSignatureCreatorMock
         );
     }

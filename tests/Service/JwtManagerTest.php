@@ -7,31 +7,30 @@ namespace achertovsky\jwt\tests\Service;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Const\JwtClaims;
-use achertovsky\jwt\Normalizer\TokenNormalizer;
+use achertovsky\jwt\Normalizer\HmacTokenNormalizer;
 use achertovsky\jwt\Exception\JwtException;
 use achertovsky\jwt\Normalizer\JwtPartsNormalizer;
-use achertovsky\jwt\Service\HmacJwtManager;
+use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
 use achertovsky\jwt\Service\HmacSignatureCreator;
 
-class HmacJwtManagerTest extends TestCase
+class JwtManagerTest extends TestCase
 {
     private const KEY = 'soprivatekeywow';
     private const ALGORITHM = 'sha256';
     private const PAYLOAD_SUB = '123';
-    private HmacJwtManager $manager;
+    private JwtManager $manager;
 
     protected function setUp(): void
     {
-        $this->manager = new HmacJwtManager(
+        $this->manager = new JwtManager(
             new PayloadNormalizer(),
-            new TokenNormalizer(
+            new HmacTokenNormalizer(
                 new HmacSignatureCreator(
                     self::ALGORITHM,
                     self::KEY
                 )
             ),
-            self::KEY,
             new JwtPartsNormalizer()
         );
     }
@@ -103,15 +102,14 @@ class HmacJwtManagerTest extends TestCase
 
     public function testValidateInvalidSignatureKey(): void
     {
-        $manager = new HmacJwtManager(
+        $manager = new JwtManager(
             new PayloadNormalizer(),
-            new TokenNormalizer(
+            new HmacTokenNormalizer(
                 new HmacSignatureCreator(
                     self::ALGORITHM,
                     'wrongkey'
                 )
             ),
-            'wrongkey',
             new JwtPartsNormalizer()
         );
         $this->assertFalse(
@@ -202,10 +200,9 @@ class HmacJwtManagerTest extends TestCase
         ;
 
         /** @var JwtPartsNormalizer $jwtPartsNormalizerMock */
-        $manager = new HmacJwtManager(
+        $manager = new JwtManager(
             $this->createMock(PayloadNormalizer::class),
-            $this->createMock(TokenNormalizer::class),
-            'key',
+            $this->createMock(HmacTokenNormalizer::class),
             $jwtPartsNormalizerMock
         );
 
