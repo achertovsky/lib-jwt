@@ -33,15 +33,14 @@ class TokenNormalizer
 
     public function denormalize(string $token): Token
     {
-        list($header, $payload, $signature) = explode(
+        list($header, $payload) = explode(
             '.',
             $token
         );
 
         return new Token(
             $header,
-            $payload,
-            $signature
+            $payload
         );
     }
 }

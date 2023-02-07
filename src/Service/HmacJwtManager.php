@@ -4,101 +4,64 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Service;
 
+use achertovsky\jwt\Entity\Token;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Const\JwtClaims;
-use achertovsky\jwt\Normalizer\PayloadNormalizer;
+use achertovsky\jwt\Exception\JwtException;
 use achertovsky\jwt\Normalizer\TokenNormalizer;
+use achertovsky\jwt\Normalizer\PayloadNormalizer;
+use achertovsky\jwt\Normalizer\JwtPartsNormalizer;
 use achertovsky\jwt\Exception\TokenExpiredException;
 
 class HmacJwtManager implements JwtManagerInterface
 {
-    private const ALGO = 'sha256';
     private const HEADER_ALGO = 'HS256';
 
     public function __construct(
         private PayloadNormalizer $payloadNormalizer,
-        private TokenNormalizer $tokenDenormalizer,
-        private string $secret
+        private TokenNormalizer $tokenNormalizer,
+        private JwtPartsNormalizer $jwtPartsNormalizer
     ) {
     }
 
     public function create(Payload $payload): string
     {
-        $header = $this->encode(
-            [
-                JwtClaims::ALGORITHM => self::HEADER_ALGO,
-                JwtClaims::TYPE => 'JWT',
-            ]
-        );
-
-        $payload = $this->encode(
-            $this->payloadNormalizer->normalize(
-                $payload
-            )
-        );
-
-        /**
-         * @todo use token denormalizer
-         */
-        return sprintf(
-            '%s.%s.%s',
-            $header,
-            $payload,
-            $this->sign(
-                $header,
-                $payload
-            )
-        );
-    }
-
-    /**
-     * @param array<string,string> $array
-     * @return string
-     */
-    private function encode(array $array): string
-    {
-        $encodedJson = json_encode(
-            $array
-        );
-
-        return base64_encode(
-            (string) $encodedJson
-        );
-    }
-
-    /**
-     * @todo move method to separated service
-     */
-    private function sign(string $header, string $payload): string
-    {
-        return hash_hmac(
-            self::ALGO,
-            sprintf(
-                '%s.%s',
-                $header,
-                $payload
+        $token = new Token(
+            $this->jwtPartsNormalizer->normalize(
+                [
+                    JwtClaims::ALGORITHM => self::HEADER_ALGO,
+                    JwtClaims::TYPE => 'JWT',
+                ]
             ),
-            $this->secret
+            $this->jwtPartsNormalizer->normalize(
+                $this->payloadNormalizer->normalize(
+                    $payload
+                )
+            )
         );
+
+        return $this->tokenNormalizer->normalize($token);
     }
 
     public function validate(string $token): bool
     {
-        $token = $this->tokenDenormalizer->denormalize($token);
+        try {
+            $tokenEntity = $this->tokenNormalizer->denormalize($token);
+            $ourSignedToken = $this->tokenNormalizer->normalize(
+                $tokenEntity
+            );
 
-        $this->assureNotExpired($token->getPayload());
+            $this->assureNotExpired($tokenEntity->getPayload());
+        } catch (JwtException $exception) {
+            return false;
+        }
 
-        return $this->sign(
-            $token->getHeader(),
-            $token->getPayload()
-        )
-            === $token->getSignature()
-        ;
+        return $token === $ourSignedToken;
     }
 
     public function assureNotExpired(string $payload): void
     {
-        $decodedPayload = $this->payloadToArray(
+        $decodedPayload = $this->jwtPartsNormalizer->denormalize(
             $payload
         );
 
@@ -110,39 +73,12 @@ class HmacJwtManager implements JwtManagerInterface
         }
     }
 
-    /**
-     * @param string $encodedData
-     * @return array<string,array<string,string>>
-     */
-    private function payloadToArray(string $encodedData): array
-    {
-        $base64Decoded = base64_decode(
-            $encodedData,
-            true
-        );
-
-        if ($base64Decoded === false) {
-            return [];
-        }
-
-        $jsonDecoded = json_decode(
-            $base64Decoded,
-            true
-        );
-
-        if ($jsonDecoded === null) {
-            return [];
-        }
-
-        return $jsonDecoded;
-    }
-
     public function decode(string $token): Payload
     {
-        $token = $this->tokenDenormalizer->denormalize($token);
+        $token = $this->tokenNormalizer->denormalize($token);
 
-        $payload = $this->payloadToArray($token->getPayload());
-
-        return $this->payloadNormalizer->denormalize($payload);
+        return $this->payloadNormalizer->denormalize(
+            $this->jwtPartsNormalizer->denormalize($token->getPayload())
+        );
     }
 }

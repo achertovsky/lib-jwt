@@ -9,6 +9,7 @@ use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Normalizer\TokenNormalizer;
 use achertovsky\jwt\Exception\JwtException;
+use achertovsky\jwt\Normalizer\JwtPartsNormalizer;
 use achertovsky\jwt\Service\HmacJwtManager;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
 use achertovsky\jwt\Service\HmacSignatureCreator;
@@ -30,7 +31,8 @@ class HmacJwtManagerTest extends TestCase
                     self::KEY
                 )
             ),
-            self::KEY
+            self::KEY,
+            new JwtPartsNormalizer()
         );
     }
 
@@ -109,7 +111,8 @@ class HmacJwtManagerTest extends TestCase
                     'wrongkey'
                 )
             ),
-            'wrongkey'
+            'wrongkey',
+            new JwtPartsNormalizer()
         );
         $this->assertFalse(
             $manager
@@ -158,42 +161,8 @@ class HmacJwtManagerTest extends TestCase
 
     public function testValidateExpired(): void
     {
-        $this->expectException(JwtException::class);
-
-        $this->manager
-            ->validate(
-                $this->generateJwt(
-                    strtotime('-1 day')
-                )
-            )
-        ;
-    }
-
-    public function testValidateNotJson(): void
-    {
         $this->assertFalse(
-            $this->manager
-                ->validate(
-                    sprintf(
-                        '.%s.',
-                        base64_encode(
-                            'notjson'
-                        )
-                    )
-                )
-        );
-    }
-
-    public function testValidateNotBase64(): void
-    {
-        $this->assertFalse(
-            $this->manager
-                ->validate(
-                    sprintf(
-                        '.%s.',
-                        'notbase64'
-                    )
-                )
+            $this->manager->validate($this->generateJwt(strtotime('-1 day')))
         );
     }
 
@@ -221,6 +190,27 @@ class HmacJwtManagerTest extends TestCase
         $this->assertEquals(
             $payload,
             $this->manager->decode($jwt)
+        );
+    }
+
+    public function testIssueValidateExceptionCatch(): void
+    {
+        $jwtPartsNormalizerMock = $this->createMock(JwtPartsNormalizer::class);
+        $jwtPartsNormalizerMock
+            ->method('denormalize')
+            ->will($this->throwException(new JwtException()))
+        ;
+
+        /** @var JwtPartsNormalizer $jwtPartsNormalizerMock */
+        $manager = new HmacJwtManager(
+            $this->createMock(PayloadNormalizer::class),
+            $this->createMock(TokenNormalizer::class),
+            'key',
+            $jwtPartsNormalizerMock
+        );
+
+        $this->assertFalse(
+            $manager->validate('token')
         );
     }
 }

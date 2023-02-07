@@ -8,8 +8,7 @@ class Token
 {
     public function __construct(
         private string $header,
-        private string $payload,
-        private string $signature
+        private string $payload
     ) {
     }
 
@@ -21,10 +20,5 @@ class Token
     public function getPayload(): string
     {
         return $this->payload;
-    }
-
-    public function getSignature(): string
-    {
-        return $this->signature;
     }
 }

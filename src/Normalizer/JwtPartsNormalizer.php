@@ -28,7 +28,7 @@ class JwtPartsNormalizer
             throw new JwtException('Not base64');
         }
 
-        $result = json_decode($json);
+        $result = json_decode($json, true);
         if ($result === null) {
             throw new JwtException('Not a json in base64');
         }
