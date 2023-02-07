@@ -1,11 +1,11 @@
 # 2.0.0
-## Added
 ## Changed
 - `HmacJwtManager` refactored, constructor signature got changed
 - `HmacJwtManager` renamed to `JwtManager`, since it knows none about algorithm anymore
 - `JwtManager` became main expected lib interface.
 ## Removed
 - `JwtManagerInterface`
+## Added
 - Changelog
 - `Token` DTO
 - `JwtPartsNormalizer`: array to string and vice versa (`base64`, `json_encode` things).
