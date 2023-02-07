@@ -16,7 +16,7 @@ class HmacSignatureCreatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->creator = new SignatureCreator(
+        $this->creator = new HmacSignatureCreator(
             self::ALGORITHM,
             self::SECRET_KEY
         );
