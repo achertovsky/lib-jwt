@@ -11,10 +11,12 @@ use achertovsky\jwt\Normalizer\TokenNormalizer;
 use achertovsky\jwt\Exception\JwtException;
 use achertovsky\jwt\Service\HmacJwtManager;
 use achertovsky\jwt\Normalizer\PayloadNormalizer;
+use achertovsky\jwt\Service\HmacSignatureCreator;
 
 class HmacJwtManagerTest extends TestCase
 {
     private const KEY = 'soprivatekeywow';
+    private const ALGORITHM = 'sha256';
     private const PAYLOAD_SUB = '123';
     private HmacJwtManager $manager;
 
@@ -22,7 +24,12 @@ class HmacJwtManagerTest extends TestCase
     {
         $this->manager = new HmacJwtManager(
             new PayloadNormalizer(),
-            new TokenNormalizer(),
+            new TokenNormalizer(
+                new HmacSignatureCreator(
+                    self::ALGORITHM,
+                    self::KEY
+                )
+            ),
             self::KEY
         );
     }
@@ -96,7 +103,12 @@ class HmacJwtManagerTest extends TestCase
     {
         $manager = new HmacJwtManager(
             new PayloadNormalizer(),
-            new TokenNormalizer(),
+            new TokenNormalizer(
+                new HmacSignatureCreator(
+                    self::ALGORITHM,
+                    'wrongkey'
+                )
+            ),
             'wrongkey'
         );
         $this->assertFalse(
