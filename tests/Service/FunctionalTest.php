@@ -7,7 +7,7 @@ namespace achertovsky\jwt\tests\Service;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Service\HS256Signer;
-use achertovsky\jwt\Service\TDDJwtManager;
+use achertovsky\jwt\Service\JwtManager;
 
 class FunctionalTest extends TestCase
 {
@@ -17,12 +17,12 @@ class FunctionalTest extends TestCase
     private const EXPIRE_AT = 1516239022;
 
     private HS256Signer $signer;
-    private TDDJwtManager $manager;
+    private JwtManager $manager;
 
     protected function setUp(): void
     {
         $this->signer = new HS256Signer();
-        $this->manager = new TDDJwtManager(
+        $this->manager = new JwtManager(
             $this->signer,
             self::KEY
         );

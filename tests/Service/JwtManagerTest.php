@@ -5,20 +5,16 @@ declare(strict_types=1);
 namespace achertovsky\jwt\tests\Service;
 
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Service\TDDJwtManager;
+use achertovsky\jwt\Service\JwtManager;
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Service\SignerInterface;
 
-class TDDJwtManagerTest extends TestCase
+class JwtManagerTest extends TestCase
 {
     private const JWT_SIGNATURE_KEY = 'key';
     private const JWT_PAYLOAD_SUB = '1';
     private const JWT_PAYLOAD_EXPIRE_AT = 1678984407;
 
-    private const JWT = 'eyJ0eXAiOiJKV1QifQ'
-        . '.eyJzdWIiOiIxIn0'
-        . '.sign'
-    ;
     private const EXPIRED_JWT = 'eyJ0eXAiOiJKV1QifQ'
         . '.eyJzdWIiOiIxIiwiZXhwIjoxNjc4OTg0NDA3fQ'
         . '.sign'
@@ -26,7 +22,7 @@ class TDDJwtManagerTest extends TestCase
 
     private SignerInterface $signerMock;
 
-    private TDDJwtManager $manager;
+    private JwtManager $manager;
 
     protected function setUp(): void
     {
@@ -35,7 +31,7 @@ class TDDJwtManagerTest extends TestCase
             ->method('sign')
             ->willReturn('sign')
         ;
-        $this->manager = new TDDJwtManager(
+        $this->manager = new JwtManager(
             $this->signerMock,
             self::JWT_SIGNATURE_KEY
         );

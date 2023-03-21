@@ -7,7 +7,7 @@ namespace achertovsky\jwt\Service;
 use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Entity\Payload;
 
-class TDDJwtManager
+class JwtManager
 {
     private Base64UrlEncoder $encoder;
 
