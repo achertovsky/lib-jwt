@@ -18,7 +18,7 @@ class TDDJwtManager
         $this->encoder = new Base64UrlEncoder();
     }
 
-    public function create(Payload $payload): string
+    public function encode(Payload $payload): string
     {
         $headerAndPayload = sprintf(
             '%s.%s',

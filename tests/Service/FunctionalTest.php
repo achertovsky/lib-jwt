@@ -32,7 +32,7 @@ class FunctionalTest extends TestCase
     {
         $this->assertEquals(
             self::JWT,
-            $this->manager->create(
+            $this->manager->encode(
                 new Payload(
                     self::SUBJECT,
                     self::EXPIRE_AT

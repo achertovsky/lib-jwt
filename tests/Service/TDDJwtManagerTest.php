@@ -53,7 +53,7 @@ class TDDJwtManagerTest extends TestCase
 
         $this->assertEquals(
             self::JWT,
-            $this->manager->create(
+            $this->manager->encode(
                 new Payload(
                     self::JWT_PAYLOAD_SUB
                 )
@@ -65,7 +65,7 @@ class TDDJwtManagerTest extends TestCase
     {
         $this->assertEquals(
             self::EXPIRED_JWT,
-            $this->manager->create(
+            $this->manager->encode(
                 new Payload(
                     self::JWT_PAYLOAD_SUB,
                     self::JWT_PAYLOAD_EXPIRE_AT
