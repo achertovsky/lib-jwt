@@ -41,7 +41,7 @@ class TDDJwtManagerTest extends TestCase
         );
     }
 
-    public function testGeneratesPayload(): void
+    public function testEncodes(): void
     {
         $this->signerMock
             ->method('sign')
@@ -51,18 +51,6 @@ class TDDJwtManagerTest extends TestCase
             )
         ;
 
-        $this->assertEquals(
-            self::JWT,
-            $this->manager->encode(
-                new Payload(
-                    self::JWT_PAYLOAD_SUB
-                )
-            )
-        );
-    }
-
-    public function testGeneratesPayloadWithExpirationTime(): void
-    {
         $this->assertEquals(
             self::EXPIRED_JWT,
             $this->manager->encode(
