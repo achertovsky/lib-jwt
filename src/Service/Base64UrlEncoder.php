@@ -19,4 +19,15 @@ class Base64UrlEncoder
             '='
         );
     }
+
+    public function decode(string $payload): string
+    {
+        return base64_decode(
+            strtr(
+                $payload,
+                '+/',
+                '-_'
+            )
+        );
+    }
 }

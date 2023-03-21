@@ -4,28 +4,34 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Service;
 
-use achertovsky\jwt\Const\JwtClaims;
 use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Exception\SignatureInvalidException;
+use achertovsky\jwt\Exception\TokenExpiredException;
 
 class JwtManager
 {
     private Base64UrlEncoder $encoder;
+    private PayloadTransformer $payloadTransformer;
+    private HeaderGenerator $headerGenerator;
 
     public function __construct(
+        private TimeProviderInterface $timeProvider,
         private SignerInterface $signer,
         private string $signKey
     ) {
         $this->encoder = new Base64UrlEncoder();
+        $this->payloadTransformer = new PayloadTransformer();
+        $this->headerGenerator = new HeaderGenerator();
     }
 
     public function encode(Payload $payload): string
     {
         $headerAndPayload = sprintf(
             '%s.%s',
-            $this->generateHeader(),
+            $this->headerGenerator->generateHeader(),
             $this->encoder->encode(
                 json_encode(
-                    $this->mapToArray($payload)
+                    $this->payloadTransformer->mapToArray($payload)
                 )
             )
         );
@@ -40,27 +46,37 @@ class JwtManager
         );
     }
 
-    private function generateHeader(): string
+    /**
+     * @todo extract methods of validation
+     */
+    public function decode(string $token): Payload
     {
-        return $this->encoder->encode(
-            json_encode(
-                [
-                    JwtClaims::TYPE => 'JWT',
-                ]
-            )
+        list($header, $jsonPayload, $signature) = explode('.', $token);
+
+        $expectedSignature = $this->signer->sign(
+            sprintf(
+                '%s.%s',
+                $header,
+                $jsonPayload
+            ),
+            $this->signKey
         );
-    }
 
-    private function mapToArray(Payload $payload): array
-    {
-        $arrayPayload = [
-            JwtClaims::SUBJECT => $payload->getId(),
-        ];
-
-        if ($payload->getExpireAt() !== null) {
-            $arrayPayload[JwtClaims::EXPIRATION_TIME] = $payload->getExpireAt();
+        if ($signature !== $expectedSignature) {
+            throw new SignatureInvalidException();
         }
 
-        return $arrayPayload;
+        $payload = $this->payloadTransformer->mapToPayload(
+            json_decode(
+                $this->encoder->decode($jsonPayload),
+                true
+            )
+        );
+
+        if ($payload->getExpireAt() < $this->timeProvider->getTime()) {
+            throw new TokenExpiredException();
+        }
+
+        return $payload;
     }
 }

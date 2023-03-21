@@ -6,8 +6,11 @@ namespace achertovsky\jwt\tests\Service;
 
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Service\HS256Signer;
+use achertovsky\jwt\Exception\SignatureInvalidException;
+use achertovsky\jwt\Exception\TokenExpiredException;
 use achertovsky\jwt\Service\JwtManager;
+use achertovsky\jwt\Service\HS256Signer;
+use achertovsky\jwt\Service\TimeProvider;
 
 class FunctionalTest extends TestCase
 {
@@ -23,6 +26,7 @@ class FunctionalTest extends TestCase
     {
         $this->signer = new HS256Signer();
         $this->manager = new JwtManager(
+            new TimeProvider(),
             $this->signer,
             self::KEY
         );
@@ -39,5 +43,50 @@ class FunctionalTest extends TestCase
                 )
             )
         );
+    }
+
+    public function testDecodesJwt(): void
+    {
+        $payload = new Payload(
+            self::SUBJECT,
+            time(),
+        );
+
+        $this->assertEquals(
+            $payload,
+            $this->manager->decode(
+                $this->manager->encode($payload)
+            )
+        );
+    }
+
+    public function testIssueDecodeFailsOnWrongSignature(): void
+    {
+        $this->expectException(SignatureInvalidException::class);
+
+        $payload = new Payload(
+            self::SUBJECT,
+            time(),
+        );
+
+        $anotherManager = new JwtManager(
+            new TimeProvider(),
+            $this->signer,
+            'anotherKey'
+        );
+
+        $this->assertEquals(
+            $payload,
+            $this->manager->decode(
+                $anotherManager->encode($payload)
+            )
+        );
+    }
+
+    public function testIssueDecodeExpiredToken(): void
+    {
+        $this->expectException(TokenExpiredException::class);
+
+        $this->manager->decode(self::JWT);
     }
 }
