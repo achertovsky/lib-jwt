@@ -1,3 +1,9 @@
+# 3.0.0
+## Changed
+- `JwtManager` signature constructor changed.
+- `JwtManager` main and only methods is `encode` and `decode`.
+- Internal structure changes
+
 # 2.0.0
 ## Changed
 - `HmacJwtManager` refactored, constructor signature got changed

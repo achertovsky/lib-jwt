@@ -8,6 +8,5 @@ class JwtClaims
 {
     public const SUBJECT = 'sub';
     public const EXPIRATION_TIME = 'exp';
-    public const ALGORITHM = 'alg';
     public const TYPE = 'typ';
 }
