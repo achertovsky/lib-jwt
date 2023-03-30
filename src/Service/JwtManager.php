@@ -15,7 +15,6 @@ class JwtManager
     private HeaderGenerator $headerGenerator;
 
     public function __construct(
-        private TimeProviderInterface $timeProvider,
         private SignerInterface $signer,
         private string $signKey
     ) {
@@ -73,7 +72,7 @@ class JwtManager
             )
         );
 
-        if ($payload->getExpireAt() < $this->timeProvider->getTime()) {
+        if ($payload->getExpireAt() < time()) {
             throw new TokenExpiredException();
         }
 

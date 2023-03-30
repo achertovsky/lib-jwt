@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\tests\Service;
 
-use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Exception\SignatureInvalidException;
-use achertovsky\jwt\Exception\TokenExpiredException;
-use achertovsky\jwt\Service\JwtManager;
 use PHPUnit\Framework\TestCase;
+use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Service\SignerInterface;
-use achertovsky\jwt\Service\TimeProviderInterface;
+use achertovsky\jwt\Exception\TokenExpiredException;
+use achertovsky\jwt\Exception\SignatureInvalidException;
 
 class JwtManagerTest extends TestCase
 {
@@ -23,18 +22,15 @@ class JwtManagerTest extends TestCase
         . '.sign'
     ;
 
-    private TimeProviderInterface $timeProvider;
     private SignerInterface $signerMock;
 
     private JwtManager $manager;
 
     protected function setUp(): void
     {
-        $this->timeProvider = $this->createMock(TimeProviderInterface::class);
         $this->signerMock = $this->createMock(SignerInterface::class);
 
         $this->manager = new JwtManager(
-            $this->timeProvider,
             $this->signerMock,
             self::JWT_SIGNATURE_KEY
         );
@@ -75,13 +71,15 @@ class JwtManagerTest extends TestCase
     {
         $this->configureSignerSignReturn('sign');
 
+        $payload = new Payload(
+            self::JWT_PAYLOAD_SUB,
+            time()+1000
+        );
+
         $this->assertEquals(
-            new Payload(
-                self::JWT_PAYLOAD_SUB,
-                self::JWT_PAYLOAD_EXPIRE_AT
-            ),
+            $payload,
             $this->manager->decode(
-                self::EXPIRED_JWT
+                $this->manager->encode($payload)
             )
         );
     }
@@ -91,10 +89,6 @@ class JwtManagerTest extends TestCase
         $this->expectException(SignatureInvalidException::class);
 
         $this->configureSignerSignReturn('anotherSignature');
-        $this->timeProvider
-            ->method('getTime')
-            ->willReturn(self::JWT_PAYLOAD_EXPIRE_AT - 1)
-        ;
 
         $this->assertEquals(
             new Payload(
@@ -112,19 +106,9 @@ class JwtManagerTest extends TestCase
         $this->expectException(TokenExpiredException::class);
 
         $this->configureSignerSignReturn('sign');
-        $this->timeProvider
-            ->method('getTime')
-            ->willReturn(time())
-        ;
 
-        $this->assertEquals(
-            new Payload(
-                self::JWT_PAYLOAD_SUB,
-                self::JWT_PAYLOAD_EXPIRE_AT
-            ),
-            $this->manager->decode(
-                self::EXPIRED_JWT
-            )
+        $this->manager->decode(
+            self::EXPIRED_JWT
         );
     }
 }

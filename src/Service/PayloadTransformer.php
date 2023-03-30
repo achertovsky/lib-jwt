@@ -11,15 +11,10 @@ class PayloadTransformer
 {
     public function mapToArray(Payload $payload): array
     {
-        $arrayPayload = [
+        return [
             JwtClaims::SUBJECT => $payload->getId(),
+            JwtClaims::EXPIRATION_TIME => $payload->getExpireAt(),
         ];
-
-        if ($payload->getExpireAt() !== null) {
-            $arrayPayload[JwtClaims::EXPIRATION_TIME] = $payload->getExpireAt();
-        }
-
-        return $arrayPayload;
     }
 
     public function mapToPayload(array $arrayPayload): Payload

@@ -6,11 +6,10 @@ namespace achertovsky\jwt\tests\Service;
 
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Exception\SignatureInvalidException;
-use achertovsky\jwt\Exception\TokenExpiredException;
 use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Service\HS256Signer;
-use achertovsky\jwt\Service\TimeProvider;
+use achertovsky\jwt\Exception\TokenExpiredException;
+use achertovsky\jwt\Exception\SignatureInvalidException;
 
 class FunctionalTest extends TestCase
 {
@@ -26,7 +25,6 @@ class FunctionalTest extends TestCase
     {
         $this->signer = new HS256Signer();
         $this->manager = new JwtManager(
-            new TimeProvider(),
             $this->signer,
             self::KEY
         );
@@ -70,7 +68,6 @@ class FunctionalTest extends TestCase
         );
 
         $anotherManager = new JwtManager(
-            new TimeProvider(),
             $this->signer,
             'anotherKey'
         );
