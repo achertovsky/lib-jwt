@@ -10,6 +10,7 @@ use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Service\SignerInterface;
 use achertovsky\jwt\Exception\TokenExpiredException;
 use achertovsky\jwt\Exception\SignatureInvalidException;
+use achertovsky\jwt\Exception\UnexpectedPayloadException;
 
 class JwtManagerTest extends TestCase
 {
@@ -109,6 +110,24 @@ class JwtManagerTest extends TestCase
 
         $this->manager->decode(
             self::EXPIRED_JWT
+        );
+    }
+
+    public function testIssueDecodeJwtPayloadDontHaveExpectedFields(): void
+    {
+        $this->expectException(UnexpectedPayloadException::class);
+
+        $expectedSignature = 'sign';
+
+        $this->configureSignerSignReturn($expectedSignature);
+
+        $this->manager->decode(
+            sprintf(
+                '%s.%s.%s',
+                'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9',
+                'eyJzdWJqIjoiMTIzNDU2Nzg5MCIsImlhdCI6MTUxNjIzOTAyMn0',
+                $expectedSignature
+            )
         );
     }
 }

@@ -8,8 +8,6 @@ use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Service\HS256Signer;
-use achertovsky\jwt\Exception\TokenExpiredException;
-use achertovsky\jwt\Exception\SignatureInvalidException;
 
 class FunctionalTest extends TestCase
 {
@@ -47,7 +45,7 @@ class FunctionalTest extends TestCase
     {
         $payload = new Payload(
             self::SUBJECT,
-            time(),
+            time()+60,
         );
 
         $this->assertEquals(
@@ -56,34 +54,5 @@ class FunctionalTest extends TestCase
                 $this->manager->encode($payload)
             )
         );
-    }
-
-    public function testIssueDecodeFailsOnWrongSignature(): void
-    {
-        $this->expectException(SignatureInvalidException::class);
-
-        $payload = new Payload(
-            self::SUBJECT,
-            time(),
-        );
-
-        $anotherManager = new JwtManager(
-            $this->signer,
-            'anotherKey'
-        );
-
-        $this->assertEquals(
-            $payload,
-            $this->manager->decode(
-                $anotherManager->encode($payload)
-            )
-        );
-    }
-
-    public function testIssueDecodeExpiredToken(): void
-    {
-        $this->expectException(TokenExpiredException::class);
-
-        $this->manager->decode(self::JWT);
     }
 }
