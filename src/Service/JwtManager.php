@@ -4,81 +4,78 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\Service;
 
-use achertovsky\jwt\Entity\Token;
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Const\JwtClaims;
-use achertovsky\jwt\Exception\JwtException;
-use achertovsky\jwt\Normalizer\PayloadNormalizer;
-use achertovsky\jwt\Normalizer\JwtPartsNormalizer;
+use achertovsky\jwt\Exception\SignatureInvalidException;
 use achertovsky\jwt\Exception\TokenExpiredException;
-use achertovsky\jwt\Normalizer\TokenNormalizerInterface;
 
 class JwtManager
 {
-    private const HEADER_ALGO = 'HS256';
+    private Base64UrlEncoder $encoder;
+    private PayloadTransformer $payloadTransformer;
+    private HeaderGenerator $headerGenerator;
 
     public function __construct(
-        private PayloadNormalizer $payloadNormalizer,
-        private TokenNormalizerInterface $tokenNormalizer,
-        private JwtPartsNormalizer $jwtPartsNormalizer
+        private SignerInterface $signer,
+        private string $signKey
     ) {
+        $this->encoder = new Base64UrlEncoder();
+        $this->payloadTransformer = new PayloadTransformer();
+        $this->headerGenerator = new HeaderGenerator();
     }
 
-    public function create(Payload $payload): string
+    public function encode(Payload $payload): string
     {
-        $token = new Token(
-            $this->jwtPartsNormalizer->normalize(
-                [
-                    JwtClaims::ALGORITHM => self::HEADER_ALGO,
-                    JwtClaims::TYPE => 'JWT',
-                ]
-            ),
-            $this->jwtPartsNormalizer->normalize(
-                $this->payloadNormalizer->normalize(
-                    $payload
+        $headerAndPayload = sprintf(
+            '%s.%s',
+            $this->headerGenerator->generateHeader(),
+            $this->encoder->encode(
+                json_encode(
+                    $this->payloadTransformer->mapToArray($payload)
                 )
             )
         );
 
-        return $this->tokenNormalizer->normalize($token);
-    }
-
-    public function validate(string $token): bool
-    {
-        try {
-            $tokenEntity = $this->tokenNormalizer->denormalize($token);
-            $ourSignedToken = $this->tokenNormalizer->normalize(
-                $tokenEntity
-            );
-
-            $this->assureNotExpired($tokenEntity->getPayload());
-        } catch (JwtException $exception) {
-            return false;
-        }
-
-        return $token === $ourSignedToken;
-    }
-
-    public function assureNotExpired(string $payload): void
-    {
-        $decodedPayload = $this->jwtPartsNormalizer->denormalize(
-            $payload
+        return sprintf(
+            '%s.%s',
+            $headerAndPayload,
+            $this->signer->sign(
+                $headerAndPayload,
+                $this->signKey,
+            )
         );
-
-        if (
-            isset($decodedPayload[JwtClaims::EXPIRATION_TIME])
-            && (int) $decodedPayload[JwtClaims::EXPIRATION_TIME] < time()
-        ) {
-            throw new TokenExpiredException();
-        }
     }
 
+    /**
+     * @todo extract methods of validation
+     */
     public function decode(string $token): Payload
     {
-        $token = $this->tokenNormalizer->denormalize($token);
+        list($header, $jsonPayload, $signature) = explode('.', $token);
 
-        return $this->payloadNormalizer->denormalize(
-            $this->jwtPartsNormalizer->denormalize($token->getPayload())
+        $expectedSignature = $this->signer->sign(
+            sprintf(
+                '%s.%s',
+                $header,
+                $jsonPayload
+            ),
+            $this->signKey
         );
+
+        if ($signature !== $expectedSignature) {
+            throw new SignatureInvalidException();
+        }
+
+        $payload = $this->payloadTransformer->mapToPayload(
+            json_decode(
+                $this->encoder->decode($jsonPayload),
+                true
+            )
+        );
+
+        if ($payload->getExpireAt() < time()) {
+            throw new TokenExpiredException();
+        }
+
+        return $payload;
     }
 }

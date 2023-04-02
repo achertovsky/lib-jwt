@@ -6,208 +6,128 @@ namespace achertovsky\jwt\tests\Service;
 
 use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Const\JwtClaims;
-use achertovsky\jwt\Normalizer\HmacTokenNormalizer;
-use achertovsky\jwt\Exception\JwtException;
-use achertovsky\jwt\Normalizer\JwtPartsNormalizer;
 use achertovsky\jwt\Service\JwtManager;
-use achertovsky\jwt\Normalizer\PayloadNormalizer;
-use achertovsky\jwt\Service\HmacSignatureCreator;
+use achertovsky\jwt\Service\SignerInterface;
+use achertovsky\jwt\Exception\TokenExpiredException;
+use achertovsky\jwt\Exception\SignatureInvalidException;
+use achertovsky\jwt\Exception\UnexpectedPayloadException;
 
 class JwtManagerTest extends TestCase
 {
-    private const KEY = 'soprivatekeywow';
-    private const ALGORITHM = 'sha256';
-    private const PAYLOAD_SUB = '123';
+    private const JWT_SIGNATURE_KEY = 'key';
+    private const JWT_PAYLOAD_SUB = '1';
+    private const JWT_PAYLOAD_EXPIRE_AT = 1678984407;
+
+    private const EXPIRED_JWT = 'eyJ0eXAiOiJKV1QifQ'
+        . '.eyJzdWIiOiIxIiwiZXhwIjoxNjc4OTg0NDA3fQ'
+        . '.sign'
+    ;
+
+    private SignerInterface $signerMock;
+
     private JwtManager $manager;
 
     protected function setUp(): void
     {
+        $this->signerMock = $this->createMock(SignerInterface::class);
+
         $this->manager = new JwtManager(
-            new PayloadNormalizer(),
-            new HmacTokenNormalizer(
-                new HmacSignatureCreator(
-                    self::ALGORITHM,
-                    self::KEY
-                )
-            ),
-            new JwtPartsNormalizer()
+            $this->signerMock,
+            self::JWT_SIGNATURE_KEY
         );
     }
 
-    public function testCreate(): void
+    public function testEncode(): void
     {
+        $this->configureSignerSignReturn('sign');
+
+        $this->signerMock
+            ->method('sign')
+            ->with(
+                $this->anything(),
+                self::JWT_SIGNATURE_KEY
+            )
+        ;
+
         $this->assertEquals(
-            $this->generateJwt(),
-            $this->manager
-                ->create(
-                    new Payload(
-                        self::PAYLOAD_SUB
-                    )
+            self::EXPIRED_JWT,
+            $this->manager->encode(
+                new Payload(
+                    self::JWT_PAYLOAD_SUB,
+                    self::JWT_PAYLOAD_EXPIRE_AT
                 )
-        );
-    }
-
-    private function generateJwt(?int $exp = null): string
-    {
-        $encodedJson = json_encode(
-            [
-                JwtClaims::ALGORITHM => 'HS256',
-                JwtClaims::TYPE => 'JWT'
-            ]
-        );
-
-        $header = base64_encode(
-            (string) $encodedJson
-        );
-        $payloadData = [
-            JwtClaims::SUBJECT => self::PAYLOAD_SUB,
-        ];
-        if ($exp !== null) {
-            $payloadData[JwtClaims::EXPIRATION_TIME] = $exp;
-        }
-        $encodedJson = json_encode(
-            $payloadData
-        );
-        $payload = base64_encode(
-            (string) $encodedJson
-        );
-        $signature = hash_hmac(
-            'sha256',
-            sprintf(
-                '%s.%s',
-                $header,
-                $payload
-            ),
-            self::KEY
-        );
-
-        return sprintf(
-            '%s.%s.%s',
-            $header,
-            $payload,
-            $signature
-        );
-    }
-
-    public function testValidate(): void
-    {
-        $this->assertTrue(
-            $this->manager
-                ->validate(
-                    $this->generateJwt()
-                )
-        );
-    }
-
-    public function testValidateInvalidSignatureKey(): void
-    {
-        $manager = new JwtManager(
-            new PayloadNormalizer(),
-            new HmacTokenNormalizer(
-                new HmacSignatureCreator(
-                    self::ALGORITHM,
-                    'wrongkey'
-                )
-            ),
-            new JwtPartsNormalizer()
-        );
-        $this->assertFalse(
-            $manager
-                ->validate(
-                    $this->generateJwt()
-                )
-        );
-    }
-
-    public function testValidateModifiedPayload(): void
-    {
-        $jwt = $this->generateJwt();
-        list($header, $payload, $signature) = explode(
-            '.',
-            $jwt
-        );
-
-        $payload = json_decode(
-            base64_decode(
-                $payload
-            ),
-            true
-        );
-
-        $payload['newkey'] = 'whynot';
-
-        $encodedJson = json_encode(
-            $payload
-        );
-        $payload = base64_encode(
-            (string) $encodedJson
-        );
-
-        $this->assertFalse(
-            $this->manager
-                ->validate(
-                    sprintf(
-                        '%s.%s.%s',
-                        $header,
-                        $payload,
-                        $signature
-                    )
-                )
-        );
-    }
-
-    public function testValidateExpired(): void
-    {
-        $this->assertFalse(
-            $this->manager->validate($this->generateJwt(strtotime('-1 day')))
-        );
-    }
-
-    public function testCreateAndValidate(): void
-    {
-        $jwt = $this->manager->create(
-            new Payload(
-                'subject'
             )
         );
+    }
 
-        $this->assertTrue(
-            $this->manager->validate($jwt)
-        );
+    private function configureSignerSignReturn(string $willReturn): void
+    {
+        $this->signerMock
+            ->method('sign')
+            ->willReturn($willReturn)
+        ;
     }
 
     public function testDecode(): void
     {
+        $this->configureSignerSignReturn('sign');
+
         $payload = new Payload(
-            'id',
-            strtotime('+30 min')
+            self::JWT_PAYLOAD_SUB,
+            time()+1000
         );
-        $jwt = $this->manager->create($payload);
 
         $this->assertEquals(
             $payload,
-            $this->manager->decode($jwt)
+            $this->manager->decode(
+                $this->manager->encode($payload)
+            )
         );
     }
 
-    public function testIssueValidateExceptionCatch(): void
+    public function testDecodeSignatureMismatch(): void
     {
-        $jwtPartsNormalizerMock = $this->createMock(JwtPartsNormalizer::class);
-        $jwtPartsNormalizerMock
-            ->method('denormalize')
-            ->will($this->throwException(new JwtException()))
-        ;
+        $this->expectException(SignatureInvalidException::class);
 
-        /** @var JwtPartsNormalizer $jwtPartsNormalizerMock */
-        $manager = new JwtManager(
-            $this->createMock(PayloadNormalizer::class),
-            $this->createMock(HmacTokenNormalizer::class),
-            $jwtPartsNormalizerMock
+        $this->configureSignerSignReturn('anotherSignature');
+
+        $this->assertEquals(
+            new Payload(
+                self::JWT_PAYLOAD_SUB,
+                self::JWT_PAYLOAD_EXPIRE_AT
+            ),
+            $this->manager->decode(
+                self::EXPIRED_JWT
+            )
         );
+    }
 
-        $this->assertFalse(
-            $manager->validate('token')
+    public function testDecodeTokenExpired(): void
+    {
+        $this->expectException(TokenExpiredException::class);
+
+        $this->configureSignerSignReturn('sign');
+
+        $this->manager->decode(
+            self::EXPIRED_JWT
+        );
+    }
+
+    public function testIssueDecodeJwtPayloadDontHaveExpectedFields(): void
+    {
+        $this->expectException(UnexpectedPayloadException::class);
+
+        $expectedSignature = 'sign';
+
+        $this->configureSignerSignReturn($expectedSignature);
+
+        $this->manager->decode(
+            sprintf(
+                '%s.%s.%s',
+                'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9',
+                'eyJzdWJqIjoiMTIzNDU2Nzg5MCIsImlhdCI6MTUxNjIzOTAyMn0',
+                $expectedSignature
+            )
         );
     }
 }

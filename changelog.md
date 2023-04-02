@@ -1,3 +1,12 @@
+# 3.0.0
+## Changed
+- `JwtManager` signature constructor changed.
+- `JwtManager` main and only methods is `encode` and `decode`.
+- Internal structure changes
+## Added
+- `SignerInterface` that is used by `JwtManager` for signing the header+payload.
+- `HS256Signer` as default signer
+
 # 2.0.0
 ## Changed
 - `HmacJwtManager` refactored, constructor signature got changed
