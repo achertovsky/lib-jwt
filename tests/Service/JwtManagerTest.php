@@ -11,6 +11,7 @@ use achertovsky\jwt\Service\SignerInterface;
 use achertovsky\jwt\Exception\TokenExpiredException;
 use achertovsky\jwt\Exception\SignatureInvalidException;
 use achertovsky\jwt\Exception\UnexpectedPayloadException;
+use achertovsky\jwt\Exception\MalformedJwtException;
 
 class JwtManagerTest extends TestCase
 {
@@ -18,9 +19,11 @@ class JwtManagerTest extends TestCase
     private const JWT_PAYLOAD_SUB = '1';
     private const JWT_PAYLOAD_EXPIRE_AT = 1678984407;
 
+    private const MOCKED_SIGN = 'sign';
+
     private const EXPIRED_JWT = 'eyJ0eXAiOiJKV1QifQ'
         . '.eyJzdWIiOiIxIiwiZXhwIjoxNjc4OTg0NDA3fQ'
-        . '.sign'
+        . '.' . self::MOCKED_SIGN
     ;
 
     private SignerInterface $signerMock;
@@ -106,7 +109,7 @@ class JwtManagerTest extends TestCase
     {
         $this->expectException(TokenExpiredException::class);
 
-        $this->configureSignerSignReturn('sign');
+        $this->configureSignerSignReturn(self::MOCKED_SIGN);
 
         $this->manager->decode(
             self::EXPIRED_JWT
@@ -117,17 +120,42 @@ class JwtManagerTest extends TestCase
     {
         $this->expectException(UnexpectedPayloadException::class);
 
-        $expectedSignature = 'sign';
-
-        $this->configureSignerSignReturn($expectedSignature);
+        $this->configureSignerSignReturn(self::MOCKED_SIGN);
 
         $this->manager->decode(
             sprintf(
                 '%s.%s.%s',
                 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9',
                 'eyJzdWJqIjoiMTIzNDU2Nzg5MCIsImlhdCI6MTUxNjIzOTAyMn0',
-                $expectedSignature
+                self::MOCKED_SIGN
             )
         );
+    }
+
+    /**
+     * @dataProvider dataIssueMalformedJwt
+     */
+    public function testIssueMalformedJwt(
+        string $toDecode
+    ): void {
+        $this->expectException(MalformedJwtException::class);
+
+        $this->configureSignerSignReturn(self::MOCKED_SIGN);
+
+        $this->manager->decode(
+            $toDecode
+        );
+    }
+
+    public function dataIssueMalformedJwt(): array
+    {
+        return [
+            'just random string' => [
+                'definitely not a jwt',
+            ],
+            '3 parts, but string' => [
+                'not.valid.'.self::MOCKED_SIGN,
+            ],
+        ];
     }
 }

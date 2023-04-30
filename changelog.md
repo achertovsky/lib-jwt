@@ -1,3 +1,7 @@
+# 3.0.1
+## Fixed
+- `JwtManager` can handle random string and malformed tokens
+
 # 3.0.0
 ## Changed
 - `JwtManager` signature constructor changed.
