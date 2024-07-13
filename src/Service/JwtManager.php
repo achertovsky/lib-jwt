@@ -8,22 +8,20 @@ use achertovsky\jwt\Entity\Payload;
 use achertovsky\jwt\Exception\MalformedJwtException;
 use achertovsky\jwt\Exception\SignatureInvalidException;
 use achertovsky\jwt\Exception\TokenExpiredException;
+use Psr\Clock\ClockInterface;
 
 class JwtManager
 {
-    private const JWT_CHUNKS_AMOUNT = 3;
-
-    private Base64UrlEncoder $encoder;
-    private PayloadTransformer $payloadTransformer;
-    private HeaderGenerator $headerGenerator;
+    private const int JWT_CHUNKS_AMOUNT = 3;
 
     public function __construct(
-        private SignerInterface $signer,
-        private string $signKey
+        private ClockInterface $clock,
+        private string $signKey,
+        private SignerInterface $signer = new HS256Signer(),
+        private Base64UrlEncoder $encoder = new Base64UrlEncoder(),
+        private PayloadTransformer $payloadTransformer = new PayloadTransformer(),
+        private HeaderGenerator $headerGenerator = new HeaderGenerator()
     ) {
-        $this->encoder = new Base64UrlEncoder();
-        $this->payloadTransformer = new PayloadTransformer();
-        $this->headerGenerator = new HeaderGenerator();
     }
 
     public function encode(Payload $payload): string
@@ -113,7 +111,7 @@ class JwtManager
 
     private function validateTokenNotExpired(Payload $payload): void
     {
-        if ($payload->getExpireAt() < time()) {
+        if ($payload->getExpireAt() < $this->clock->now()->getTimestamp()) {
             throw new TokenExpiredException();
         }
     }

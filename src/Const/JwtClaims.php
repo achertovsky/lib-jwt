@@ -6,7 +6,7 @@ namespace achertovsky\jwt\Const;
 
 class JwtClaims
 {
-    public const SUBJECT = 'sub';
-    public const EXPIRATION_TIME = 'exp';
-    public const TYPE = 'typ';
+    public const string SUBJECT = 'sub';
+    public const string EXPIRATION_TIME = 'exp';
+    public const string TYPE = 'typ';
 }
