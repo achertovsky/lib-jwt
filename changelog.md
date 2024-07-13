@@ -1,3 +1,12 @@
+# 4.0.0
+## Added
+- PSR-20
+## Fixed
+- Fixed LSP
+## Changed
+- PHP version bumped to 8.3
+- Upgraded phpunit version to 11
+
 # 3.0.1
 ## Fixed
 - `JwtManager` can handle random string and malformed tokens

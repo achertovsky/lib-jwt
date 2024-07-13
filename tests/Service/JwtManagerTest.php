@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\tests\Service;
 
-use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
+use achertovsky\jwt\Exception\MalformedJwtException;
+use achertovsky\jwt\Exception\SignatureInvalidException;
+use achertovsky\jwt\Exception\TokenExpiredException;
+use achertovsky\jwt\Exception\UnexpectedPayloadException;
 use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Service\SignerInterface;
-use achertovsky\jwt\Exception\TokenExpiredException;
-use achertovsky\jwt\Exception\SignatureInvalidException;
-use achertovsky\jwt\Exception\UnexpectedPayloadException;
-use achertovsky\jwt\Exception\MalformedJwtException;
+use achertovsky\jwt\tests\TestDouble\Internal\ClockFake;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 class JwtManagerTest extends TestCase
 {
@@ -30,13 +33,18 @@ class JwtManagerTest extends TestCase
 
     private JwtManager $manager;
 
+    private ClockInterface $clock;
+
     protected function setUp(): void
     {
         $this->signerMock = $this->createMock(SignerInterface::class);
+        $this->clock = new ClockFake();
+
 
         $this->manager = new JwtManager(
-            $this->signerMock,
-            self::JWT_SIGNATURE_KEY
+            $this->clock,
+            self::JWT_SIGNATURE_KEY,
+            $this->signerMock
         );
     }
 
@@ -77,7 +85,7 @@ class JwtManagerTest extends TestCase
 
         $payload = new Payload(
             self::JWT_PAYLOAD_SUB,
-            time()+1000
+            $this->clock->now()->getTimestamp() + 1000
         );
 
         $this->assertEquals(
@@ -132,9 +140,7 @@ class JwtManagerTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider dataIssueMalformedJwt
-     */
+    #[DataProvider('dataIssueMalformedJwt')]
     public function testIssueMalformedJwt(
         string $toDecode
     ): void {
@@ -147,7 +153,7 @@ class JwtManagerTest extends TestCase
         );
     }
 
-    public function dataIssueMalformedJwt(): array
+    public static function dataIssueMalformedJwt(): array
     {
         return [
             'just random string' => [

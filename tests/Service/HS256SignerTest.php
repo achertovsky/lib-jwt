@@ -9,9 +9,9 @@ use achertovsky\jwt\Service\HS256Signer;
 
 class HS256SignerTest extends TestCase
 {
-    private const SIGN_DATA = 'TEST123';
-    private const SIGN_KEY = 'secretKey';
-    private const EXPECTED_RESULT = 'mjT4BgTzV4wQJp3UjRPAjyEkk6bREN1XGRlR7UNKhbg';
+    private const string SIGN_DATA = 'TEST123';
+    private const string SIGN_KEY = 'secretKey';
+    private const string EXPECTED_RESULT = 'mjT4BgTzV4wQJp3UjRPAjyEkk6bREN1XGRlR7UNKhbg';
 
     private HS256Signer $signer;
 

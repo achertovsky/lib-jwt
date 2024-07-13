@@ -4,27 +4,32 @@ declare(strict_types=1);
 
 namespace achertovsky\jwt\tests\Service;
 
-use PHPUnit\Framework\TestCase;
 use achertovsky\jwt\Entity\Payload;
-use achertovsky\jwt\Service\JwtManager;
 use achertovsky\jwt\Service\HS256Signer;
+use achertovsky\jwt\Service\JwtManager;
+use achertovsky\jwt\tests\TestDouble\Internal\ClockFake;
+use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 class FunctionalTest extends TestCase
 {
-    private const KEY = 'key';
-    private const JWT = 'eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjMiLCJleHAiOjE1MTYyMzkwMjJ9.nx5NzssasukjE_xSar23Smu7ALHg42YVfDpkWetyGKI';
-    private const SUBJECT = '123';
-    private const EXPIRE_AT = 1516239022;
+    private const string KEY = 'key';
+    private const string JWT = 'eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjMiLCJleHAiOjE1MTYyMzkwMjJ9.nx5NzssasukjE_xSar23Smu7ALHg42YVfDpkWetyGKI';
+    private const string SUBJECT = '123';
+    private const int EXPIRE_AT = 1516239022;
 
     private HS256Signer $signer;
     private JwtManager $manager;
+    private ClockInterface $clock;
 
     protected function setUp(): void
     {
         $this->signer = new HS256Signer();
+        $this->clock = new ClockFake();
         $this->manager = new JwtManager(
-            $this->signer,
-            self::KEY
+            $this->clock,
+            self::KEY,
+            $this->signer
         );
     }
 
@@ -45,7 +50,7 @@ class FunctionalTest extends TestCase
     {
         $payload = new Payload(
             self::SUBJECT,
-            time()+60,
+            $this->clock->now()->getTimestamp() + 60,
         );
 
         $this->assertEquals(

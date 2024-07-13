@@ -15,6 +15,11 @@ docker run --rm -it -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-jwt composer
 docker run --rm -it -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-jwt vendor/bin/phpunit
 ```
 
+## testing with coverage
+```
+docker run --rm -it -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-jwt php -d pcov.enabled=1 -d pcov.directory=/tmp vendor/bin/phpunit --coverage-text
+```
+
 ## testing with xdebugging (xdebug on 9001 by default)
 ```
 docker run --rm -it --add-host=host.docker.internal:host-gateway -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-jwt vendor/bin/phpunit
