@@ -1,3 +1,7 @@
+# 5.0.0
+## Changed
+- tests/TestDouble/External/JwtManagerFake.php gets ability to define id and expired at after init by having its properties to be public
+
 # 4.0.0
 ## Added
 - PSR-20

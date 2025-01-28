@@ -1,6 +1,6 @@
 {
     "name": "achertovsky/lib-jwt",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "description": "JWT POPO library",
     "require": {
         "php": "^8.3",

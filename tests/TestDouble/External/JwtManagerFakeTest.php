@@ -79,4 +79,21 @@ class JwtManagerFakeTest extends TestCase
             JwtManagerFake::UNEXPECTED_PAYLOAD_TOKEN
         );
     }
+
+    public function testAbleToReplacePayloadFields(): void
+    {
+        $newId = 'new_id';
+        $expiredAt = 11111111111;
+
+        $this->jwtManagerFake->id = $newId;
+        $this->jwtManagerFake->expireAt = $expiredAt;
+
+        $this->assertEquals(
+            new Payload(
+                $newId,
+                $expiredAt
+            ),
+            $this->jwtManagerFake->decode('whatever token')
+        );
+    }
 }

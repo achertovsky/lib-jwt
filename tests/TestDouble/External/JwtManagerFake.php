@@ -23,8 +23,8 @@ class JwtManagerFake extends JwtManager
 
     public function __construct(
         private string $successToken = self::SUCCESS_TOKEN,
-        private string $id = self::PAYLOAD_ID,
-        private int $expireAt = self::PAYLOAD_EXPIRE_AT,
+        public string $id = self::PAYLOAD_ID,
+        public int $expireAt = self::PAYLOAD_EXPIRE_AT,
         private string $malformedToken = self::MALFORMED_TOKEN,
         private string $invalidSignatureToken = self::INVALID_SIGNATURE_TOKEN,
         private string $expiredToken = self::EXPIRED_TOKEN,
