@@ -41,13 +41,13 @@ class JwtManagerFake extends JwtManager
     {
         switch ($token) {
             case $this->malformedToken:
-                throw new MalformedJwtException();
+                throw new MalformedJwtException('JWT is missing or malformed');
             case $this->invalidSignatureToken:
-                throw new SignatureInvalidException();
+                throw new SignatureInvalidException('JWT signature is invalid');
             case $this->expiredToken:
-                throw new TokenExpiredException();
+                throw new TokenExpiredException('JWT has expired');
             case $this->unexpectedPayloadToken:
-                throw new UnexpectedPayloadException();
+                throw new UnexpectedPayloadException('Unexpected payload');
         }
 
         return new Payload(
