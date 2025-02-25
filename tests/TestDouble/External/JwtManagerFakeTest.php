@@ -51,6 +51,8 @@ class JwtManagerFakeTest extends TestCase
     public function testDecodeMalformedTokenThrowsMalformedJwtException(): void
     {
         $this->expectException(MalformedJwtException::class);
+        $this->expectExceptionMessage('JWT is missing or malformed');
+
         $this->jwtManagerFake->decode(
             JwtManagerFake::MALFORMED_TOKEN
         );
@@ -59,6 +61,8 @@ class JwtManagerFakeTest extends TestCase
     public function testDecodeInvalidSignatureTokenThrowsSignatureInvalidException(): void
     {
         $this->expectException(SignatureInvalidException::class);
+        $this->expectExceptionMessage('JWT signature is invalid');
+
         $this->jwtManagerFake->decode(
             JwtManagerFake::INVALID_SIGNATURE_TOKEN
         );
@@ -67,6 +71,8 @@ class JwtManagerFakeTest extends TestCase
     public function testDecodeExpiredTokenThrowsTokenExpiredException(): void
     {
         $this->expectException(TokenExpiredException::class);
+        $this->expectExceptionMessage('JWT has expired');
+
         $this->jwtManagerFake->decode(
             JwtManagerFake::EXPIRED_TOKEN
         );
@@ -75,6 +81,8 @@ class JwtManagerFakeTest extends TestCase
     public function testDecodeUnexpectedPayloadTokenThrowsUnexpectedPayloadException(): void
     {
         $this->expectException(UnexpectedPayloadException::class);
+        $this->expectExceptionMessage('Unexpected payload');
+
         $this->jwtManagerFake->decode(
             JwtManagerFake::UNEXPECTED_PAYLOAD_TOKEN
         );

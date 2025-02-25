@@ -1,3 +1,7 @@
+# 5.0.1
+## Added
+- tests/TestDouble/External/JwtManagerFake.php now has exception messages
+
 # 5.0.0
 ## Changed
 - tests/TestDouble/External/JwtManagerFake.php gets ability to define id and expired at after init by having its properties to be public
